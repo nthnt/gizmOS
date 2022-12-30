@@ -1,4 +1,4 @@
-# mte241-lab1
+# mte241 - lab2
 
 
 
@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://git.uwaterloo.ca/n26tang/mte241-lab1.git
+git remote add origin https://git.uwaterloo.ca/n26tang/mte241-lab2.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://git.uwaterloo.ca/n26tang/mte241-lab1/-/settings/integrations)
+- [ ] [Set up project integrations](https://git.uwaterloo.ca/n26tang/mte241-lab2/-/settings/integrations)
 
 ## Collaborate with your team
 

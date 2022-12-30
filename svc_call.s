@@ -1,8 +1,27 @@
-	AREA handle_pend,CODE,READONLY ;creates area that holds important code in a single contiguous block of space
-	GLOBAL PendSV_Handler ;declare PendSV interrupt function globally
-	PRESERVE8 ;tells linker that stack will lie on 8 boundary
-
+	AREA	handle_pend,CODE,READONLY
+	EXTERN task_switch ;I am going to call a C function to handle the switching
+	GLOBAL PendSV_Handler
+	PRESERVE8
 PendSV_Handler
-	MOV LR,#0xFFFFFFFD ;return from interrupt via laoding constant into handler, switches from MSP to PSP and go back to thread mode
-	BX LR ;branch to LR and maintain certain processor state information
-	END ;end file
+	
+		MRS r0,PSP
+		
+		;Store the registers
+		STMDB r0!,{r4-r11}
+		
+		;call kernel task switch
+		BL task_switch
+		
+		MRS r0,PSP ;this is the new task stack
+		MOV LR,#0xFFFFFFFD ;magic return value to get us back to Thread mode
+		
+		;LoaD Multiple Increment After, basically undo the stack pushes we did before
+		LDMIA r0!,{r4-r11}
+		
+		;Reload PSP. Now that we've popped a bunch, PSP has to be updated
+		MSR PSP,r0
+		
+		;return
+		BX LR
+
+		END

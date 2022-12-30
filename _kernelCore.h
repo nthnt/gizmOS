@@ -1,17 +1,22 @@
 #ifndef KERNELCORE_H
 #define KERNELCORE_H
-//header guard to avoid repeated declarations
 
 #include <stdint.h>
+#include <LPC17xx.h>
+#include "osDefs.h"
 
-//access the memory address that allows us to change the priority of PENDSV interrupt
-#define SHPR3 *(uint32_t*)0xE000ED20 
-//access the memory address that allows us to change PendSV function (such as pending status)
-#define ICSR *(uint32_t*)0xE000ED04 
+#define SHPR3 *(uint32_t*)0xE000ED20
+#define ICSR *(uint32_t*)0xE000ED04
 
 // initializes memory structures and interrupts necessary to run the kernel
-void kernelInit(void);
+void kernelInit(void); 
 // called by the kernel to schedule which threads to run
-void osSched(void); 
+void osYield(void); 
+// sets the value of PSP to threadStack and ensures that the microcontroller is using that value by changing the CONTROL register
+void setThreadingWithPSP(uint32_t* threadStack);
+//start kernel
+int osKernelStart(void);
+//switches task
+int task_switch(void);
 
 #endif

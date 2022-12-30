@@ -7,32 +7,46 @@
 //this file sets up the UART
 #include "uart.h"
 
-//include appropriate header files for thread and kernel functions
 #include "_threadsCore.h"
 #include "_kernelCore.h"
 
+void task1(void* args) {
+	while(1) {
+	  printf("this is task 1\n");
+		osYield();
+	}
+}
+void task2(void* args) {
+	while(1) {
+		printf("this is task 2\n");
+		osYield();
+	}
+}
 
-int main( void ) 
-{
-	//create a new PSP that is 512 bytes from MSP
-	uint32_t* q = getNewThreadStack(512);
+void idle(void* args) {
+	while(1) {
+		printf("idle thread\n");
+		osYield();
+	}
+}
 
-	//set the value of PSP to the created thread stack in previous step
-	setThreadingWithPSP(q);
-	
-	printf("initial MSP address: %p \n", getMSPInitialLocation());
-	printf("generated (from fn. 2) PSP address: %u \n", (uint32_t) q);
-	printf("PSP address: %u \n", __get_PSP());
-	printf("control bit: %u \n\n", __get_CONTROL());
-	
+int main(void) {
 	//Always call this function at the start. It sets up various peripherals, the clock etc. If you don't call this
 	//you may see some weird behaviour
 	SystemInit();
 	
-	//initialize the memory structures and interrupts necessary to run kernelInit
+	//initialize kernel
 	kernelInit();
-	//function that chedules which threads to run
-	osSched();
+	
+	printf("initialized\n");
+	
+	//creating threads 
+	newThread(idle);
+	newThread(task1);
+	newThread(task2);
+	
+	//start kernel
+	osKernelStart();
 	
 	//Your code should always terminate in an endless loop if it is done. If you don't
 	//the processor will enter a hardfault and will be weird

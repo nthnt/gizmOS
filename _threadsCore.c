@@ -4,36 +4,82 @@
 //This file is for printf and other IO functions
 #include "stdio.h"
 
-//include appropriate header files for forward declarationss
 #include "_threadsCore.h"
 
-//obtains initial MSP location via vector table at address 0x0
+#include "osDefs.h"
+
+//for malloc
+#include <stdlib.h>
+
+//extern variables found in _kernelCore.c
+//create currentNode pointer to reference the head node later
+extern threadNode* currentNode;
+// dynamic linked list to store threads
+extern threadLinkedList* list;
+
 uint32_t* getMSPInitialLocation(void) {
 	uint32_t* p = 0x0;
 	return (uint32_t*)*p; //dereference p to get MSP location (as integer) at 0x0 then cast to pointer 
 }
 
-//creates new PSP that is offset bytes from MSP
+//create a new thread
+void newThread(void (*threadFunc) (void* args)) {
+	//create new thread
+	threadNode* thread = malloc(sizeof(struct threadNode));
+	
+	//assign characteristics of thread
+	thread->threadFunc = threadFunc;
+	thread->threadStackP = getNewThreadStack(MSR_SIZE + (list->size)*PSP_SIZE);
+	thread->next = NULL;
+	thread->status = WAITING;
+	
+	//add the particular thread to the linked list
+	if (list->head == NULL) {
+		list->head = thread;
+	} else if (list->size < MAXNUMTHREADS) {
+		thread->next = list->head;
+		list->head = thread;
+	}
+	
+	//increment the list size
+	list->size++;
+	
+	currentNode = list->head;
+	
+	//set thread mode
+	*(--(currentNode->threadStackP)) = 1<<24;
+	//store PC
+	*(--currentNode->threadStackP) = (uint32_t) threadFunc;
+	//store registers
+	*(--currentNode->threadStackP) = 0x8; //LR
+	*(--currentNode->threadStackP) = 0x7; //R12
+	*(--currentNode->threadStackP) = 0xD; //R3
+	*(--currentNode->threadStackP) = 0xC; //R2
+	*(--currentNode->threadStackP) = 0xB; //R1
+	*(--currentNode->threadStackP) = 0xA; // R0
+	*(--currentNode->threadStackP) = 0x6; //R11
+	*(--currentNode->threadStackP) = 0x5; //R10
+	*(--currentNode->threadStackP) = 0x4; //R9
+	*(--currentNode->threadStackP) = 0x3; //R8
+	*(--currentNode->threadStackP) = 0x2; //R7
+	*(--currentNode->threadStackP) = 0x1; //R6
+	*(--currentNode->threadStackP) = 0xF; //R5
+	*(--currentNode->threadStackP) = 0xE; //R4
+
+}
+
 uint32_t* getNewThreadStack(uint32_t offset){
-	uint32_t msp_int = (uint32_t) getMSPInitialLocation(); //cast MSP location to integer to avoid pointer arithmetic
+	uint32_t msp_int = (uint32_t) getMSPInitialLocation();
 	uint32_t psp_int = msp_int - offset;
 	
-	printf("\n");
+	if(psp_int%8)
+		psp_int+=4;
 	
 	//error checking and returns null if the offset is greater than size
 	//of max stack (8192 bytes)
 	if(msp_int - psp_int > 8192) {
-		printf("Stack Size too large! \n");
-		return NULL; 
+		return NULL;
 	}
 	
-	return (uint32_t*) psp_int; //return pointer to new PSP
-}
-
-//sets the PSP value and control bit
-void setThreadingWithPSP(uint32_t* threadStack) {
-	 //sets PSP register with PSP passed as parameter
-	__set_PSP((uint32_t) threadStack);
-	//sets control bit to 2 to indicate PSP used
-	__set_CONTROL(1 << 1); 
+	return (uint32_t*) psp_int;
 }
