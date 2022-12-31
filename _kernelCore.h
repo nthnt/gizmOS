@@ -15,8 +15,10 @@ void osYield(void);
 // sets the value of PSP to threadStack and ensures that the microcontroller is using that value by changing the CONTROL register
 void setThreadingWithPSP(uint32_t* threadStack);
 //start kernel
-int osKernelStart(void);
-//switches task
-int task_switch(void);
+void osKernelStart(void);
+//round robin scheduler
+void scheduler(void);
+//makes the thread sleep
+void osThreadSleep(uint32_t sleeptime);
 
 #endif

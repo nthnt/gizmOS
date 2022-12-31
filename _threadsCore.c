@@ -11,11 +11,13 @@
 //for malloc
 #include <stdlib.h>
 
-//extern variables found in _kernelCore.c
+//keep track of the thread number
+
+//dynamic linked list to store threads
+extern threadLinkedList* list;
+
 //create currentNode pointer to reference the head node later
 extern threadNode* currentNode;
-// dynamic linked list to store threads
-extern threadLinkedList* list;
 
 uint32_t* getMSPInitialLocation(void) {
 	uint32_t* p = 0x0;
@@ -31,14 +33,24 @@ void newThread(void (*threadFunc) (void* args)) {
 	thread->threadFunc = threadFunc;
 	thread->threadStackP = getNewThreadStack(MSR_SIZE + (list->size)*PSP_SIZE);
 	thread->next = NULL;
-	thread->status = WAITING;
+	thread->status = ACTIVE;
+	thread->runTimer = OS_RUNTIME;
+	thread->sleepTimer = 0;
+	
 	
 	//add the particular thread to the linked list
 	if (list->head == NULL) {
+		// when the first thread is added, its next is pointing to itself
 		list->head = thread;
+		thread->next = list->head;
+		list->tail = thread;
 	} else if (list->size < MAXNUMTHREADS) {
+		// new threads will be added at the head
 		thread->next = list->head;
 		list->head = thread;
+		
+		// tail's next is the head
+		list->tail->next = list->head;
 	}
 	
 	//increment the list size
@@ -72,8 +84,9 @@ uint32_t* getNewThreadStack(uint32_t offset){
 	uint32_t msp_int = (uint32_t) getMSPInitialLocation();
 	uint32_t psp_int = msp_int - offset;
 	
+	//fix offset if not aligned
 	if(psp_int%8)
-		psp_int+=4;
+		psp_int+=(psp_int - psp_int*8);
 	
 	//error checking and returns null if the offset is greater than size
 	//of max stack (8192 bytes)
@@ -82,4 +95,11 @@ uint32_t* getNewThreadStack(uint32_t offset){
 	}
 	
 	return (uint32_t*) psp_int;
+}
+
+//switches between threads
+int task_switch(void){
+	__set_PSP((uint32_t)currentNode->threadStackP);
+	
+	return 1;
 }

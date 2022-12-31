@@ -5,10 +5,12 @@
 
 //Obtains the initial location of MSP by looking it up in the vector table
 uint32_t* getMSPInitialLocation(void);
-//Returns the address of a new PSP with offset of ï¿½offsetï¿½ bytes from MSP. Be careful with
-//pointer arithmetic! Itï¿½s best to cast to an integer then back if youï¿½re not sure.
+//Returns the address of a new PSP with offset of “offset” bytes from MSP. Be careful with
+//pointer arithmetic! It’s best to cast to an integer then back if you’re not sure.
 uint32_t* getNewThreadStack(uint32_t offset); 
 //create new thread
 void newThread(void (*threadFunc) (void* args));
+//switches task
+int task_switch(void);
 
 #endif
