@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <LPC17xx.h>
 #include "osDefs.h"
+#include "_threadscore.h"
 
 #define SHPR3 *(uint32_t*)0xE000ED20
+#define SHPR2 *(uint32_t*)0xE000ED1C
 #define ICSR *(uint32_t*)0xE000ED04
 
 // initializes memory structures and interrupts necessary to run the kernel
@@ -17,7 +19,9 @@ void setThreadingWithPSP(uint32_t* threadStack);
 //start kernel
 void osKernelStart(void);
 //round robin scheduler
-void scheduler(void);
+threadNode* scheduler(void);
+//idle thread
+void idle (void* args);
 //makes the thread sleep
 void osThreadSleep(uint32_t sleeptime);
 

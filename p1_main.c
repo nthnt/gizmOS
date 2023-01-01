@@ -11,68 +11,67 @@
 #include "_kernelCore.h"
 extern threadNode* currentNode;
 
-/*
+void periodic_12 (void* args) {
+	while(1) {
+		printf("periodic_12Hz\n");
+	}
+}
+void periodic_100 (void* args) {
+	while(1) {
+		printf("periodic_100Hz\n");
+	}
+}
+void periodic_256 (void* args) {
+	while(1) {
+		printf("periodic_256Hz\n");
+	}
+}
+
 void yields (void* args)
 {
 	while(1)
 	{
-	  printf("yielding: %x\n",__get_PSP());	
+	  printf("yielding\n");	
 		
 		osYield();
 	}
 }
-void loops (void* args)
+void periodic (void* args)
 {
 	while(1)
 	{
-		printf("looping: %x\n",__get_PSP());
+		printf("periodic\n");
 	}
 }
 void sleeps (void* args)
 {
 	while(1)
 	{
-		printf("SLEEPING*****************: %x\n",__get_PSP());
+		printf("SLEEPING*****************\n");
 		
 		osThreadSleep(20);
 	}
 }
-void idle (void* args)
-{
-	while(1)
-	{
-		printf("idle thread %x\n",__get_PSP());
-		osYield();
-	}
-}
-*/
+
+
 
 void sleeps1 (void* args)
 {
 	while(1)
 	{
-		printf("SLEEPING1*****************: %x\n",__get_PSP());
-		
-		osThreadSleep(13);
+		printf("SLEEPING1*****************\n");
+		osThreadSleep(23);
 	}
 }
 void sleeps2 (void* args)
 {
 	while(1)
 	{
-		printf("SLEEPING2*****************: %x\n",__get_PSP());
-		
-		osThreadSleep(23);
+		printf("SLEEPING2*****************\n");
+		osThreadSleep(17);
 	}
 }
-void idle (void* args)
-{
-	while(1)
-	{
-		printf("idle thread %x\n",__get_PSP());
-		osYield();
-	}
-}
+
 
 int main( void ) 
 {
@@ -87,26 +86,24 @@ int main( void )
 	
 	printf("initialized\n");
 	
+	// TEST 1 ============================
 	/*
-	//creating threads 
-	newThread(yields);
-	newThread(loops);
-	newThread(sleeps);
-	newThread(idle);
+	newThread(yields, 7, NULL);
+	newThread(periodic, 5, 200);
+	newThread(sleeps, 11, NULL);
 	*/
 	
-	newThread(sleeps2);
-	newThread(sleeps1);
-	newThread(idle);
-	
+	// TEST 2 ============================
 	/*
-	printf("T1: %p,%d\n",currentNode->threadStackP,((uint32_t)currentNode->threadStackP)%8);
-	printf("T1: %p,%d\n",currentNode->next->threadStackP,((uint32_t)currentNode->next->threadStackP)%8);
-	printf("T1: %p,%d\n",currentNode->next->next->threadStackP,((uint32_t)currentNode->next->next->threadStackP)%8);
-		
-		*/
-		//the processor will enter a hardfault and will be weird
-	//while(1);
+	newThread(periodic_12, 10, 12);
+	newThread(periodic_100, 10, 100);
+	newThread(periodic_256, 10, 256);
+	*/
+	
+	// TEST 3 ============================
+	newThread(sleeps2, 7, NULL);
+	newThread(sleeps1, 6, NULL);
+
 	//start kernel
 	osKernelStart();
 	

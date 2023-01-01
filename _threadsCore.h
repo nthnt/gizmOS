@@ -9,8 +9,7 @@ uint32_t* getMSPInitialLocation(void);
 //pointer arithmetic! It’s best to cast to an integer then back if you’re not sure.
 uint32_t* getNewThreadStack(uint32_t offset); 
 //create new thread
-void newThread(void (*threadFunc) (void* args));
-//switches task
+void newThread(void (*threadFunc) (void* args), uint32_t deadline, uint32_t frequency);
+//task switch
 int task_switch(void);
-
 #endif

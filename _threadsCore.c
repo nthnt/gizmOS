@@ -4,15 +4,18 @@
 //This file is for printf and other IO functions
 #include "stdio.h"
 
+//thread libraries
 #include "_threadsCore.h"
-
 #include "osDefs.h"
 
 //for malloc
 #include <stdlib.h>
 
-//keep track of the thread number
+//for user-side functions
+#include <stdarg.h>
 
+//keep track of the thread number
+//extern int tasknum;
 //dynamic linked list to store threads
 extern threadLinkedList* list;
 
@@ -25,7 +28,7 @@ uint32_t* getMSPInitialLocation(void) {
 }
 
 //create a new thread
-void newThread(void (*threadFunc) (void* args)) {
+void newThread(void (*threadFunc) (void* args), uint32_t deadline, uint32_t freq) {
 	//create new thread
 	threadNode* thread = malloc(sizeof(struct threadNode));
 	
@@ -37,6 +40,23 @@ void newThread(void (*threadFunc) (void* args)) {
 	thread->runTimer = OS_RUNTIME;
 	thread->sleepTimer = 0;
 	
+	//require 0 frequency passed by user to initialize a non-periodic thread
+	if (freq == NULL){
+		thread->period = NULL; //non-periodic thread
+	} else {
+		thread->period = ((1/(double)freq)*1000); //periodic thread with period set
+	}
+	
+	//require 0 for deadline passed by user to signify no deadline
+	//set deadline
+	if (deadline == NULL) {
+		thread->deadline = INF_DEADLINE; //set to longest deadline if no deadline (primarily used for idle thread)
+		thread->deadlineTimer = thread->deadline;
+	}
+	else {
+		thread->deadline = deadline;
+		thread->deadlineTimer = thread->deadline;
+	}
 	
 	//add the particular thread to the linked list
 	if (list->head == NULL) {
@@ -84,7 +104,6 @@ uint32_t* getNewThreadStack(uint32_t offset){
 	uint32_t msp_int = (uint32_t) getMSPInitialLocation();
 	uint32_t psp_int = msp_int - offset;
 	
-	//fix offset if not aligned
 	if(psp_int%8)
 		psp_int+=(psp_int - psp_int*8);
 	
