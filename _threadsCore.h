@@ -10,7 +10,6 @@ uint32_t* getMSPInitialLocation(void);
 uint32_t* getNewThreadStack(uint32_t offset); 
 //create new thread
 void newThread(void (*threadFunc) (void* args));
-//switches task
+//task switch
 int task_switch(void);
-
 #endif

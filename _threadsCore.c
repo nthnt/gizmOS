@@ -4,15 +4,18 @@
 //This file is for printf and other IO functions
 #include "stdio.h"
 
+//thread libraries
 #include "_threadsCore.h"
-
 #include "osDefs.h"
 
 //for malloc
 #include <stdlib.h>
 
-//keep track of the thread number
+//for user-side functions
+#include <stdarg.h>
 
+//keep track of the thread number
+//extern int tasknum;
 //dynamic linked list to store threads
 extern threadLinkedList* list;
 
@@ -35,8 +38,8 @@ void newThread(void (*threadFunc) (void* args)) {
 	thread->next = NULL;
 	thread->status = ACTIVE;
 	thread->runTimer = OS_RUNTIME;
-	thread->sleepTimer = 0;
-	
+	// on new thread creation, the thread does not have any mutex to wait on
+	thread->mutexID = -1; 
 	
 	//add the particular thread to the linked list
 	if (list->head == NULL) {
@@ -84,7 +87,6 @@ uint32_t* getNewThreadStack(uint32_t offset){
 	uint32_t msp_int = (uint32_t) getMSPInitialLocation();
 	uint32_t psp_int = msp_int - offset;
 	
-	//fix offset if not aligned
 	if(psp_int%8)
 		psp_int+=(psp_int - psp_int*8);
 	
